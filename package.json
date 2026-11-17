@@ -1,0 +1,51 @@
+{
+  "name": "use-sse-stream",
+  "version": "1.0.0",
+  "description": "Vue3 组合式函数：基于 fetch + ReadableStream 的大模型流式输出，支持 SSE 帧解析、打字机累积、中断与自动重连，零依赖",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "vue3",
+    "vue",
+    "sse",
+    "stream",
+    "server-sent-events",
+    "llm",
+    "ai",
+    "chat",
+    "composable",
+    "typescript"
+  ],
+  "author": "jackiechan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lcy-24/use-sse-stream.git"
+  },
+  "peerDependencies": {
+    "vue": ">=3.3.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vue": "^3.5.13"
+  }
+}
