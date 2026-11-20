@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>use-sse-stream · SSE 流式输出 Hook</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "vue": "https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.js",
+      "use-sse-stream": "https://cdn.jsdelivr.net/npm/use-sse-stream@1.0.0/dist/index.js"
+    }
+  }
+  </script>
+  <style>
+    :root { --bg:#f7f8fa; --card:#fff; --border:#e5e7eb; --text:#1f2329; --muted:#6b7280; --accent:#3b82f6; --green:#10b981; --amber:#f59e0b; --code:#f3f4f6; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); padding:24px; }
+    .wrap { max-width:720px; margin:0 auto; }
+    h1 { font-size:22px; margin:0 0 4px; }
+    .sub { color:var(--muted); font-size:14px; margin-bottom:24px; }
+    .sub code { background:var(--code); padding:2px 6px; border-radius:4px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; }
+    .card h2 { font-size:16px; margin:0 0 12px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+    button { border:1px solid var(--border); background:#fff; color:var(--text); padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px; }
+    button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    button:hover { opacity:.9; }
+    .stream { background:#0f172a; color:#e5e7eb; border-radius:10px; padding:16px; font-family:"SF Mono",Menlo,monospace; font-size:14px; min-height:80px; line-height:1.8; white-space:pre-wrap; }
+    .cursor { display:inline-block; width:8px; height:16px; background:var(--accent); animation:blink 1s infinite; vertical-align:-2px; }
+    @keyframes blink { 50% { opacity:0; } }
+    .stat { font-size:13px; color:var(--muted); margin-top:8px; }
+    .stat b { color:var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>use-sse-stream</h1>
+    <p class="sub">Vue3 大模型流式输出 Hook（打字机效果）。安装：<code>npm i use-sse-stream</code></p>
+
+    <div id="app">
+      <div class="card">
+        <h2>① 流式输出（已 mock SSE 数据源）</h2>
+        <div class="row">
+          <button class="primary" @click="connect" :disabled="status==='connecting'||status==='open'">开始输出</button>
+          <button @click="close">停止</button>
+          <span class="stat">状态：<b>{{ status }}</b></span>
+        </div>
+        <div class="stream">{{ text }}<span v-if="status==='connecting'||status==='open'" class="cursor"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createApp } from 'vue'
+    import { useSseStream } from 'use-sse-stream'
+
+    // mock fetch：返回一个流式响应，模拟 SSE 逐字输出
+    const mockText = '这是一个流式输出的示例：每个分片都是服务端实时推送的，前端逐字渲染成打字机效果。'
+    window.fetch = async () => {
+      const stream = new ReadableStream({
+        async start(controller) {
+          for (const ch of mockText) {
+            controller.enqueue(new TextEncoder().encode(ch))
+            await new Promise(r => setTimeout(r, 40))
+          }
+          controller.close()
+        },
+      })
+      return new Response(stream, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+    }
+
+    createApp({
+      setup() {
+        const { text, status, connect, close } = useSseStream({
+          url: '/api/chat/stream',
+          method: 'POST',
+          body: { question: '你好' },
+          format: 'text',
+        })
+        return { text, status, connect, close }
+      },
+    }).mount('#app')
+  </script>
+</body>
+</html>
